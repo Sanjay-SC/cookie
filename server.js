@@ -1,35 +1,24 @@
 const express = require('express');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-
 const app = express();
 
-// CORS Configuration
-app.use(
-  cors({
-    origin: 'https://fir-8d81e.web.app', // Frontend domain
-    credentials: true, // Allow cookies
-  })
-);
-
-app.use(cookieParser());
-app.use(express.json()); // Enable parsing JSON in POST requests
-
-// Route to set the cookie
-app.post('/set-cookie', (req, res) => {
-  res.cookie('myCookie', 'myValue', {
-    domain: 'fir-8d81e.web.app', // Target domain
-    path: '/', // Cookie available site-wide
-    secure: true, // HTTPS only
-    httpOnly: true, // Not accessible via JavaScript
-    sameSite: 'None', // Required for cross-origin
-  });
-
-  res.status(200).send('Cookie has been set');
+app.use((req, res, next) => {
+  // Allow cross-origin requests
+  res.setHeader('Access-Control-Allow-Origin', 'https://other-domain.com'); // Replace with your domain
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  next();
 });
 
-// Start the server
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.get('/set-cookie', (req, res) => {
+  res.cookie('crossDomainCookie', 'cookieValue', {
+    httpOnly: true,
+    secure: true, // Use HTTPS
+    sameSite: 'None', // Allow cross-site requests
+    domain: '.example.com', // Set for your domain or subdomains
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  });
+  res.send('Cookie set');
+});
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
